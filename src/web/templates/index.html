@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Videovigilancia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Dashboard</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">Estado del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div><strong>Estado:</strong></div>
+                        <div>
+                            <span class="badge bg-success">{{ system_status.status }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div><strong>Versión:</strong></div>
+                        <div>{{ system_status.version }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div><strong>Agentes activos:</strong></div>
+                        <div>{{ system_status.agents|length }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <div><strong>Total de eventos:</strong></div>
+                        <div>{{ system_status.total_events }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0">Agentes</h5>
+                </div>
+                <div class="card-body">
+                    {% if system_status.agents %}
+                        <ul class="list-group">
+                            {% for agent in system_status.agents %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="status-indicator status-{{ agent.status }}"></span>
+                                        {{ agent.agent_id }} ({{ agent.agent_type }})
+                                    </div>
+                                    <div>
+                                        {% if agent.status == 'running' %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            No hay agentes registrados.
+                            <a href="/agents" class="alert-link">Crear un agente</a>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-end">
+                    <a href="/agents" class="btn btn-primary btn-sm">Gestionar agentes</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0">Últimos eventos</h5>
+                </div>
+                <div class="card-body">
+                    {% if events %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Prioridad</th>
+                                        <th>Fecha/Hora</th>
+                                        <th>Detalles</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for event in events %}
+                                        <tr>
+                                            <td>{{ event.event_type }}</td>
+                                            <td>
+                                                {% if event.priority >= 4 %}
+                                                    <span class="badge bg-danger">Alta</span>
+                                                {% elif event.priority >= 2 %}
+                                                    <span class="badge bg-warning text-dark">Media</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Baja</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ event.timestamp }}</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#eventModal{{ loop.index }}">
+                                                    Ver detalles
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        
+                                        <!-- Modal para detalles del evento -->
+                                        <div class="modal fade" id="eventModal{{ loop.index }}" tabindex="-1">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Detalles del evento: {{ event.event_type }}</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <dl class="row">
+                                                            <dt class="col-sm-3">ID:</dt>
+                                                            <dd class="col-sm-9">{{ event.event_id }}</dd>
+                                                            
+                                                            <dt class="col-sm-3">Tipo:</dt>
+                                                            <dd class="col-sm-9">{{ event.event_type }}</dd>
+                                                            
+                                                            <dt class="col-sm-3">Fecha/Hora:</dt>
+                                                            <dd class="col-sm-9">{{ event.timestamp }}</dd>
+                                                            
+                                                            <dt class="col-sm-3">Prioridad:</dt>
+                                                            <dd class="col-sm-9">{{ event.priority }}</dd>
+                                                            
+                                                            <dt class="col-sm-3">Datos:</dt>
+                                                            <dd class="col-sm-9">
+                                                                <pre class="bg-light p-3">{{ event.data|tojson(indent=2) }}</pre>
+                                                            </dd>
+                                                        </dl>
+                                                        
+                                                        {% if event.data.snapshot_path is defined %}
+                                                            <h6>Imagen de captura:</h6>
+                                                            <img src="/snapshots/{{ event.data.snapshot_path.split('/')[-1] }}" 
+                                                                 class="img-fluid" alt="Captura del evento">
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            No hay eventos registrados.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-end">
+                    <a href="/events" class="btn btn-primary btn-sm">Ver todos los eventos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Refrescar automáticamente la página cada 30 segundos
+    setTimeout(function() {
+        location.reload();
+    }, 30000);
+</script>
+{% endblock %} 

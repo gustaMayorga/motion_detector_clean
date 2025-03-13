@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Multimedia - Sistema de Videovigilancia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Multimedia</h1>
+    
+    <ul class="nav nav-tabs mb-4" id="mediaTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="snapshots-tab" data-bs-toggle="tab" 
+                    data-bs-target="#snapshots" type="button" role="tab">
+                <i class="bi bi-image"></i> Capturas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="recordings-tab" data-bs-toggle="tab" 
+                    data-bs-target="#recordings" type="button" role="tab">
+                <i class="bi bi-film"></i> Grabaciones
+            </button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="mediaTabContent">
+        <!-- Pestaña de capturas -->
+        <div class="tab-pane fade show active" id="snapshots" role="tabpanel">
+            {% if snapshots %}
+                <div class="row">
+                    {% for snapshot in snapshots %}
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <img src="/snapshots/{{ snapshot.filename }}" class="card-img-top" 
+                                     alt="Snapshot" style="height: 200px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ snapshot.filename }}</h6>
+                                    <p class="card-text">
+                                        <small class="text-muted">Fecha: {{ snapshot.created }}</small><br>
+                                        <small class="text-muted">Tamaño: {{ (snapshot.size / 1024)|round(1) }} KB</small>
+                                    </p>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="/snapshots/{{ snapshot.filename }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+                                    <a href="/snapshots/{{ snapshot.filename }}" download class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-download"></i> Descargar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No hay capturas disponibles.
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pestaña de grabaciones -->
+        <div class="tab-pane fade" id="recordings" role="tabpanel">
+            {% if recordings %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Fecha</th>
+                                <th>Tamaño</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for recording in recordings %}
+                                <tr>
+                                    <td>{{ recording.filename }}</td>
+                                    <td>{{ recording.created }}</td>
+                                    <td>{{ (recording.size / (1024 * 1024))|round(2) }} MB</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-primary" data-bs-toggle="modal" 
+                                           data-bs-target="#videoModal{{ loop.index }}">
+                                            <i class="bi bi-play-circle"></i> Reproducir
+                                        </a>
+                                        <a href="/recordings/{{ recording.filename }}" download class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-download"></i> Descargar
+                                        </a>
+                                        {% if recording.metadata %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" 
+                                                   data-bs-target="#metadataModal{{ loop.index }}">
+                                                <i class="bi bi-info-circle"></i> Info
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                
+                                <!-- Modal para reproducir video -->
+                                <div class="modal fade" id="videoModal{{ loop.index }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">{{ recording.filename }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <video controls class="w-100">
+                                                    <source src="/recordings/{{ recording.filename }}" type="video/mp4">
+                                                    Tu navegador no soporta la reproducción de videos.
+                                                </video>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Modal para metadatos -->
+                                {% if recording.metadata %}
+                                    <div class="modal fade" id="metadataModal{{ loop.index }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Metadatos de {{ recording.filename }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <pre class="bg-light p-3">{{ recording.metadata|tojson(indent=2) }}</pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No hay grabaciones disponibles.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

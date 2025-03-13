@@ -1,0 +1,273 @@
+<!--
+vigIA - Sistema de Vigilancia Inteligente con IA
+Versión PMV (Proyecto MOTION_DETECTOR)
+
+© 2025 Gustavo Mayorga. Todos los derechos reservados.
+
+Este código es propiedad exclusiva de Gustavo Mayorga y está protegido por leyes de 
+propiedad intelectual. Ninguna parte de este software puede ser reproducida, distribuida, 
+o utilizada para crear trabajos derivados sin autorización explícita por escrito.
+
+Contacto legal: gustavo.mayorga.gm@gmail.com
+
+AVISO: El uso no autorizado de este código o sus conceptos está estrictamente prohibido
+y será perseguido en la máxima medida permitida por la ley.
+-->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vigIA - Panel de Control</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="shortcut icon" href="/static/img/logo-vigia.png" type="image/png">
+</head>
+<body class="bg-light">
+    <header class="header-main bg-dark text-white">
+        <nav class="navbar navbar-expand-lg navbar-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <img src="/static/img/logo-vigia.png" alt="vigIA Logo" height="40" class="me-2">
+                    <span class="brand-text">vig<span class="brand-highlight">IA</span></span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link tab-link active" data-tab="live" href="#">
+                                <i class="fas fa-video me-1"></i> Cámaras en Vivo
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link tab-link" data-tab="alerts" href="#">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Alertas
+                                <span class="badge bg-danger alert-counter">0</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link tab-link" data-tab="recordings" href="#">
+                                <i class="fas fa-film me-1"></i> Grabaciones
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link tab-link" data-tab="analytics" href="#">
+                                <i class="fas fa-chart-line me-1"></i> Analítica
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link tab-link" data-tab="faces" href="#">
+                                <i class="fas fa-user-circle me-1"></i> Reconocimiento Facial
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        <div class="dropdown">
+                            <a class="btn btn-outline-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user-circle me-1"></i>
+                                <span id="user-name">Operador</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Configuración</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-bell me-2"></i>Notificaciones</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container-fluid py-4">
+        <!-- Panel de Cámaras en Vivo -->
+        <div id="tab-live" class="tab-content active">
+            <div class="row">
+                <div class="col-md-9">
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Cámaras en Vivo</h5>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-secondary" id="view-grid">
+                                    <i class="fas fa-th-large"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary" id="view-single">
+                                    <i class="fas fa-square"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="camera-container" class="camera-grid">
+                                <!-- Las cámaras se cargarán dinámicamente aquí -->
+                                <div class="camera-loading text-center p-5">
+                                    <div class="spinner-border text-primary" role="status"></div>
+                                    <p class="mt-2">Cargando cámaras...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Alertas Recientes</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush" id="recent-alerts">
+                                <!-- Las alertas se cargarán dinámicamente aquí -->
+                                <li class="list-group-item text-center text-muted">
+                                    No hay alertas recientes
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Estado del Sistema</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>CPU</span>
+                                    <span id="cpu-usage">0%</span>
+                                </div>
+                                <div class="progress">
+                                    <div id="cpu-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Memoria</span>
+                                    <span id="memory-usage">0%</span>
+                                </div>
+                                <div class="progress">
+                                    <div id="memory-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Almacenamiento</span>
+                                    <span id="storage-usage">0%</span>
+                                </div>
+                                <div class="progress">
+                                    <div id="storage-bar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Alertas -->
+        <div id="tab-alerts" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <h5 class="mb-0">Gestión de Alertas</h5>
+                        </div>
+                        <div class="col-auto">
+                            <div class="btn-group">
+                                <button class="btn btn-outline-secondary active" data-filter="all">Todas</button>
+                                <button class="btn btn-outline-danger" data-filter="high">Alta Prioridad</button>
+                                <button class="btn btn-outline-warning" data-filter="medium">Media</button>
+                                <button class="btn btn-outline-info" data-filter="low">Baja</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="alerts-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tipo</th>
+                                    <th>Cámara</th>
+                                    <th>Timestamp</th>
+                                    <th>Prioridad</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Las alertas se cargarán dinámicamente aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido para otras pestañas se añadirá según sea necesario -->
+    </main>
+
+    <!-- Modal para mostrar detalles de alertas -->
+    <div class="modal fade" id="alert-detail-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detalles de Alerta</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="alert-image mb-3">
+                                <img src="" alt="Imagen de alerta" class="img-fluid rounded" id="alert-image">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 id="alert-title">Título de la alerta</h5>
+                            <p id="alert-description" class="text-muted"></p>
+                            <div class="alert-meta">
+                                <p><strong>ID:</strong> <span id="alert-id"></span></p>
+                                <p><strong>Cámara:</strong> <span id="alert-camera"></span></p>
+                                <p><strong>Fecha y hora:</strong> <span id="alert-time"></span></p>
+                                <p><strong>Tipo:</strong> <span id="alert-type"></span></p>
+                                <p><strong>Estado:</strong> <span id="alert-status" class="badge"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-success" id="btn-acknowledge">Reconocer Alerta</button>
+                    <button type="button" class="btn btn-primary" id="btn-view-recording">Ver Grabación</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor para modales de videos -->
+    <div id="video-modal-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/camera-panel.js"></script>
+    <script src="/static/js/alerts-dashboard.js"></script>
+    <script src="/static/js/stats-panel.js"></script>
+    <script src="/static/dashboard/unified_control.js"></script>
+    <script>
+        // Inicializar el panel de control cuando el documento esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            const config = {
+                apiBaseUrl: '/api',
+                alertsContainerId: 'recent-alerts',
+                cameraContainerId: 'camera-container',
+                statsContainerId: 'stats-container',
+            };
+            
+            const controlPanel = new UnifiedControlPanel(config);
+        });
+    </script>
+</body>
+</html> 

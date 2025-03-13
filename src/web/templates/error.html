@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Sistema de Videovigilancia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Error
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ error }}</p>
+                    <div class="text-center mt-4">
+                        <a href="javascript:history.back()" class="btn btn-outline-primary me-2">
+                            <i class="bi bi-arrow-left"></i> Volver
+                        </a>
+                        <a href="/" class="btn btn-primary">
+                            <i class="bi bi-house"></i> Ir al Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

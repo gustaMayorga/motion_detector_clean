@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Gestión de Agentes - Sistema de Videovigilancia{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de Agentes</h1>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newAgentModal">
+            <i class="bi bi-plus-circle"></i> Nuevo Agente
+        </button>
+    </div>
+    
+    {% if agents %}
+        <div class="row">
+            {% for agent in agents %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">
+                                <span class="status-indicator status-{{ agent.status }}"></span>
+                                {{ agent.agent_id }}
+                            </h5>
+                            <span class="badge {% if agent.status == 'running' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ agent.status }}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <p><strong>Tipo:</strong> {{ agent.agent_type }}</p>
+                                    <p><strong>Eventos procesados:</strong> {{ agent.events_processed }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Tiempo activo:</strong> 
+                                       {% if agent.uptime %}
+                                           {{ (agent.uptime / 60)|round(1) }} minutos
+                                       {% else %}
+                                           No disponible
+                                       {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6>Configuración</h6>
+                                <ul class="list-group">
+                                    {% if agent.config.camera_id is defined %}
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Cámara ID:</span>
+                                            <span>{{ agent.config.camera_id }}</span>
+                                        </li>
+                                    {% endif %}
+                                    {% if agent.config.video_source is defined %}
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Fuente de video:</span>
+                                            <span>{{ agent.config.video_source }}</span>
+                                        </li>
+                                    {% endif %}
+                                    {% if agent.config.object_detection is defined and agent.config.object_detection.confidence_threshold is defined %}
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Umbral de confianza:</span>
+                                            <span>{{ agent.config.object_detection.confidence_threshold }}</span>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            {% if agent.status == 'running' %}
+                                <button class="btn btn-danger btn-sm" onclick="stopAgent('{{ agent.agent_id }}')">
+                                    <i class="bi bi-stop-circle"></i> Detener
+                                </button>
+                            {% else %}
+                                <button class="btn btn-success btn-sm" onclick="startAgent('{{ agent.agent_id }}')">
+                                    <i class="bi bi-play-circle"></i> Iniciar
+                                </button>
+                            {% endif %}
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteAgent('{{ agent.agent_id }}')">
+                                <i class="bi bi-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No hay agentes registrados. Crea un nuevo agente para comenzar.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Modal para crear nuevo agente -->
+<div class="modal fade" id="newAgentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Agente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="newAgentForm">
+                    <div class="mb-3">
+                        <label for="agentId" class="form-label">ID del Agente</label>
+                        <input type="text" class="form-control" id="agentId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="videoSource" class="form-label">Fuente de Video</label>
+                        <input type="text" class="form-control" id="videoSource" required 
+                               placeholder="0 para webcam, ruta para video o URL RTSP">
+                    </div>
+                    <div class="mb-3">
+                        <label for="cameraId" class="form-label">ID de Cámara (opcional)</label>
+                        <input type="text" class="form-control" id="cameraId" 
+                               placeholder="Si se deja vacío, se usará el ID del agente">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confidenceThreshold" class="form-label">
+                            Umbral de Confianza
+                            <span id="confidenceValue">0.5</span>
+                        </label>
+                        <input type="range" class="form-range" id="confidenceThreshold" 
+                               min="0.1" max="0.9" step="0.1" value="0.5"
+                               oninput="document.getElementById('confidenceValue').textContent = this.value">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createAgent()">Crear Agente</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Crear nuevo agente
+    async function createAgent() {
+        const agentId = document.getElementById('agentId').value;
+        const videoSource = document.getElementById('videoSource').value;
+        const cameraId = document.getElementById('cameraId').value;
+        const confidenceThreshold = document.getElementById('confidenceThreshold').value;
+        
+        if (!agentId || !videoSource) {
+            alert('Por favor completa los campos requeridos');
+            return;
+        }
+        
+        try {
+            const params = new URLSearchParams({
+                agent_id: agentId,
+                video_source: videoSource,
+                confidence_threshold: confidenceThreshold
+            });
+            
+            if (cameraId) {
+                params.append('camera_id', cameraId);
+            }
+            
+            const response = await fetch(`/api/agents/video?${params.toString()}`, {
+                method: 'POST'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            alert(data.message);
+            
+            // Cerrar modal y recargar página
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newAgentModal'));
+            modal.hide();
+            location.reload();
+        } catch (error) {
+            console.error('Error creating agent:', error);
+            alert(`Error al crear agente: ${error.message}`);
+        }
+    }
+    
+    // Iniciar agente
+    async function startAgent(agentId) {
+        try {
+            const response = await fetch(`/api/agents/${agentId}/start`, {
+                method: 'POST'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            alert(data.message);
+            location.reload();
+        } catch (error) {
+            console.error('Error starting agent:', error);
+            alert(`Error al iniciar agente: ${error.message}`);
+        }
+    }
+    
+    // Detener agente
+    async function stopAgent(agentId) {
+        try {
+            const response = await fetch(`/api/agents/${agentId}/stop`, {
+                method: 'POST'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            alert(data.message);
+            location.reload();
+        } catch (error) {
+            console.error('Error stopping agent:', error);
+            alert(`Error al detener agente: ${error.message}`);
+        }
+    }
+    
+    // Eliminar agente
+    async function deleteAgent(agentId) {
+        if (!confirm(`¿Estás seguro de que deseas eliminar el agente ${agentId}?`)) {
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/agents/${agentId}`, {
+                method: 'DELETE'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            alert(data.message);
+            location.reload();
+        } catch (error) {
+            console.error('Error deleting agent:', error);
+            alert(`Error al eliminar agente: ${error.message}`);
+        }
+    }
+</script>
+{% endblock %} 
