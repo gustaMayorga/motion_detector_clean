@@ -1,0 +1,30 @@
+@"
+# Entornos virtuales
+venv/
+env/
+vigia_env*/
+**/venv/
+**/__pycache__/
+
+# Archivos grandes
+*.pt
+*.pth
+*.onnx
+*.weights
+*.dll
+*.lib
+*.pyd
+models/*.pt
+data/*.mp4
+data/*.avi
+
+# Archivos de caché de Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Sistema
+.DS_Store
+Thumbs.db
+"@ | Out-File -FilePath ".gitignore" -Encoding utf8
