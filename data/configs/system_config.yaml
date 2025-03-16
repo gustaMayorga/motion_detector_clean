@@ -1,0 +1,55 @@
+# Configuración del Sistema vigIA
+system:
+  name: "vigIA"
+  version: "1.0.0"
+  log_level: "INFO"
+
+logging:
+  log_dir: "logs"
+  log_level: "INFO"
+  max_size_mb: 10
+  backup_count: 5
+
+database:
+  url: "postgresql://vigia:vigia@db:5432/vigia"
+  pool_size: 10
+  max_overflow: 20
+
+redis:
+  host: "redis"
+  port: 6379
+  db: 0
+  
+cameras:
+  cam_1:
+    name: "Cámara Principal"
+    url: "test_video.mp4"
+    enabled: true
+    detection:
+      enabled: true
+      confidence_threshold: 0.5
+      classes: ["person", "car", "truck"]
+    recording:
+      enabled: true
+      storage_path: "data/recordings"
+
+access_points:
+  point_1:
+    name: "Entrada Principal"
+    enabled: true
+    
+alerts:
+  email:
+    enabled: true
+    smtp_server: "smtp.gmail.com"
+    smtp_port: 587
+    smtp_user: "alertas@ejemplo.com"
+    smtp_pass: "password"
+    recipients: ["admin@ejemplo.com"]
+  
+  sms:
+    enabled: false
+    
+visitors:
+  check_in_enabled: true
+  storage_path: "data/visitors"

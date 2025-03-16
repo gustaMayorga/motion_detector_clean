@@ -1,0 +1,96 @@
+2025-03-15 11:16:00,070 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 11:16:00,084 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 11:16:00,088 - Database - INFO - Base de datos inicializada
+2025-03-15 11:16:00,135 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 11:16:02,190 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 11:16:02,191 - VigIASystem - INFO - Bus de eventos inicializado
+2025-03-15 11:16:02,191 - EventBus - INFO - Iniciado listener de mensajes
+2025-03-15 11:16:02,192 - VigIASystem - INFO - Inicializando gestor de almacenamiento...
+2025-03-15 11:16:02,345 - EventBus - INFO - Suscrito al canal: recording_started
+2025-03-15 11:16:02,346 - EventBus - INFO - Suscrito al canal: recording_stopped
+2025-03-15 11:16:02,346 - EventBus - INFO - Suscrito al canal: alert_generated
+2025-03-15 11:16:02,347 - StorageManager - INFO - Gestor de almacenamiento inicializado
+2025-03-15 11:16:02,347 - VigIASystem - INFO - Gestor de almacenamiento inicializado
+2025-03-15 11:16:02,347 - VigIASystem - INFO - Inicializando procesadores de video...
+2025-03-15 11:16:02,349 - VigIASystem - INFO - Encontradas 0 cámaras
+2025-03-15 11:16:02,350 - VigIASystem - INFO - Inicializando manejador de WebSockets...
+2025-03-15 11:16:02,350 - EventBus - INFO - Suscrito al canal: alert_*
+2025-03-15 11:16:02,350 - EventBus - INFO - Suscrito al canal: camera_*
+2025-03-15 11:16:02,350 - EventBus - INFO - Suscrito al canal: detection_*
+2025-03-15 11:16:02,351 - EventBus - INFO - Suscrito al canal: system_*
+2025-03-15 11:16:02,351 - EventBus - INFO - Suscrito al canal: user_*
+2025-03-15 11:16:02,351 - WebSocketEventHandler - INFO - Iniciado manejador de eventos para WebSockets
+2025-03-15 11:16:02,351 - VigIASystem - INFO - Sistema vigIA inicializado correctamente
+2025-03-15 11:16:02,352 - VigIASystem - INFO - Iniciando procesadores de video...
+2025-03-15 11:16:04,379 - VigIASystem - INFO - Sistema vigIA en ejecución
+2025-03-15 11:16:06,482 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 11:16:06,483 - API - INFO - API iniciada correctamente
+2025-03-15 11:17:42,067 - API - INFO - Intento de inicio de sesión: admin
+2025-03-15 11:17:42,293 - API - INFO - Inicio de sesión exitoso: admin
+2025-03-15 11:20:31,644 - API - INFO - Intento de inicio de sesión: admin
+2025-03-15 11:20:31,809 - API - INFO - Inicio de sesión exitoso: admin
+2025-03-15 13:48:40,375 - API - INFO - Intento de inicio de sesión: admin
+2025-03-15 13:48:40,578 - API - INFO - Inicio de sesión exitoso: admin
+2025-03-15 13:49:43,894 - API - INFO - Intento de inicio de sesión: admin
+2025-03-15 13:49:44,061 - API - INFO - Inicio de sesión exitoso: admin
+2025-03-15 14:09:49,234 - API - INFO - Intento de inicio de sesión: admin
+2025-03-15 14:09:49,387 - API - INFO - Inicio de sesión exitoso: admin
+2025-03-16 09:09:02,323 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,329 - EventBus - INFO - EventBus cerrado
+2025-03-16 09:09:02,329 - API - INFO - API cerrada correctamente
+2025-03-16 09:09:02,331 - vigIA - INFO - Recibida señal de terminación
+2025-03-16 09:09:02,332 - VigIASystem - INFO - Deteniendo sistema vigIA...
+2025-03-16 09:09:02,333 - VigIASystem - INFO - Deteniendo sistema vigIA...
+2025-03-16 09:09:02,335 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,336 - StorageManager - INFO - Gestor de almacenamiento cerrado
+2025-03-16 09:09:02,336 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,337 - EventBus - INFO - Cancelada suscripción al canal: alert_*
+2025-03-16 09:09:02,337 - EventBus - INFO - Cancelada suscripción al canal: camera_*
+2025-03-16 09:09:02,338 - EventBus - INFO - Cancelada suscripción al canal: detection_*
+2025-03-16 09:09:02,338 - EventBus - INFO - Cancelada suscripción al canal: system_*
+2025-03-16 09:09:02,339 - EventBus - INFO - Cancelada suscripción al canal: user_*
+2025-03-16 09:09:02,339 - WebSocketEventHandler - INFO - Cerrado manejador de eventos para WebSockets
+2025-03-16 09:09:02,340 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,341 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,341 - StorageManager - INFO - Gestor de almacenamiento cerrado
+2025-03-16 09:09:02,342 - EventBus - INFO - Detenido listener de mensajes
+2025-03-16 09:09:02,342 - WebSocketEventHandler - INFO - Cerrado manejador de eventos para WebSockets
+2025-03-16 09:09:02,344 - asyncio - ERROR - Task exception was never retrieved
+future: <Task finished name='Task-46' coro=<VigIASystem.stop() done, defined at E:\IA\motion_detector_clean\src\main.py:199> exception=ConnectionError('Error UNKNOWN while writing to socket. Connection lost.')>
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\connection.py", line 481, in send_packed_command
+    await self._writer.drain()
+  File "C:\Python312\Lib\asyncio\streams.py", line 392, in drain
+    await self._protocol._drain_helper()
+  File "C:\Python312\Lib\asyncio\streams.py", line 166, in _drain_helper
+    raise ConnectionResetError('Connection lost')
+ConnectionResetError: Connection lost
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\src\main.py", line 218, in stop
+    await self.event_bus.close()
+  File "E:\IA\motion_detector_clean\src\events\event_bus.py", line 235, in close
+    await self.stop_listener()
+  File "E:\IA\motion_detector_clean\src\events\event_bus.py", line 179, in stop_listener
+    await self.pubsub.unsubscribe(*self.handlers.keys())
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\client.py", line 861, in execute_command
+    await self._execute(connection, connection.send_command, *args, **kwargs)
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\client.py", line 902, in _execute
+    return await conn.retry.call_with_retry(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\retry.py", line 62, in call_with_retry
+    await fail(error)
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\client.py", line 891, in _disconnect_raise_connect
+    raise error
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\retry.py", line 59, in call_with_retry
+    return await do()
+           ^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\connection.py", line 505, in send_command
+    await self.send_packed_command(
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\redis\asyncio\connection.py", line 492, in send_packed_command
+    raise ConnectionError(
+redis.exceptions.ConnectionError: Error UNKNOWN while writing to socket. Connection lost.
+2025-03-16 09:09:02,429 - EventBus - INFO - EventBus cerrado
+2025-03-16 09:09:02,429 - VigIASystem - INFO - Sistema vigIA detenido

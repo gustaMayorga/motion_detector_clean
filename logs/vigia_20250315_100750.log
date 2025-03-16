@@ -1,0 +1,76 @@
+2025-03-15 10:07:58,324 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 10:07:58,341 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 10:07:58,345 - Database - INFO - Base de datos inicializada
+2025-03-15 10:07:58,411 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 10:08:00,446 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:08:00,446 - VigIASystem - INFO - Bus de eventos inicializado
+2025-03-15 10:08:00,447 - EventBus - INFO - Iniciado listener de mensajes
+2025-03-15 10:08:00,448 - VigIASystem - INFO - Inicializando gestor de almacenamiento...
+2025-03-15 10:08:00,462 - EventBus - INFO - Suscrito al canal: recording_started
+2025-03-15 10:08:00,463 - EventBus - INFO - Suscrito al canal: recording_stopped
+2025-03-15 10:08:00,464 - EventBus - INFO - Suscrito al canal: alert_generated
+2025-03-15 10:08:00,464 - StorageManager - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:08:00,465 - VigIASystem - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:08:00,465 - VigIASystem - INFO - Inicializando procesadores de video...
+2025-03-15 10:08:00,468 - Database - ERROR - Error en la transacción: (sqlite3.OperationalError) no such column: cameras.ip
+[SQL: SELECT cameras.id AS cameras_id, cameras.name AS cameras_name, cameras.vendor AS cameras_vendor, cameras.ip AS cameras_ip, cameras.username AS cameras_username, cameras.password AS cameras_password, cameras.rtsp_url AS cameras_rtsp_url, cameras.fps AS cameras_fps, cameras.resolution AS cameras_resolution, cameras.config AS cameras_config, cameras.is_active AS cameras_is_active, cameras.created_at AS cameras_created_at, cameras.updated_at AS cameras_updated_at 
+FROM cameras]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-03-15 10:08:00,470 - VigIASystem - ERROR - Error inicializando el sistema: (sqlite3.OperationalError) no such column: cameras.ip
+[SQL: SELECT cameras.id AS cameras_id, cameras.name AS cameras_name, cameras.vendor AS cameras_vendor, cameras.ip AS cameras_ip, cameras.username AS cameras_username, cameras.password AS cameras_password, cameras.rtsp_url AS cameras_rtsp_url, cameras.fps AS cameras_fps, cameras.resolution AS cameras_resolution, cameras.config AS cameras_config, cameras.is_active AS cameras_is_active, cameras.created_at AS cameras_created_at, cameras.updated_at AS cameras_updated_at 
+FROM cameras]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+sqlite3.OperationalError: no such column: cameras.ip
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\src\main.py", line 109, in initialize
+    cameras = db.query(Camera).all()
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2704, in all
+    return self._iter().all()  # type: ignore
+           ^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\orm\query.py", line 2858, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\orm\session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\orm\context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1416, in execute
+    return meth(
+           ^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\sql\elements.py", line 523, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1638, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1843, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1983, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 2352, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\base.py", line 1964, in _exec_single_context
+    self.dialect.do_execute(
+  File "E:\IA\motion_detector_clean\venv\Lib\site-packages\sqlalchemy\engine\default.py", line 942, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: cameras.ip
+[SQL: SELECT cameras.id AS cameras_id, cameras.name AS cameras_name, cameras.vendor AS cameras_vendor, cameras.ip AS cameras_ip, cameras.username AS cameras_username, cameras.password AS cameras_password, cameras.rtsp_url AS cameras_rtsp_url, cameras.fps AS cameras_fps, cameras.resolution AS cameras_resolution, cameras.config AS cameras_config, cameras.is_active AS cameras_is_active, cameras.created_at AS cameras_created_at, cameras.updated_at AS cameras_updated_at 
+FROM cameras]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2025-03-15 10:08:00,531 - VigIASystem - ERROR - Error inicializando el sistema, no se puede iniciar
+2025-03-15 10:08:00,532 - vigIA - ERROR - Error iniciando el sistema

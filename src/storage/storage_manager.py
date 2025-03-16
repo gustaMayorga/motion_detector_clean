@@ -8,295 +8,226 @@ from datetime import datetime, timedelta
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import cv2
+import asyncio
+
+from typing import Optional, Dict, List, Any, Tuple
+from src.config.config_loader import load_config
+from src.events.event_bus import EventBus, EventTypes
+from src.database.models import Camera, Recording, Alert
+from src.database.db import get_db
 
 class StorageManager:
-    def __init__(self, config_path="configs/storage.json"):
-        self.config = self._load_config(config_path)
-        self.storage_backends = self._init_backends()
-        self.logger = logging.getLogger('StorageManager')
-        self.video_indexer = None  # Se puede inicializar externamente
-        self.lock = threading.RLock()
-        self._cleanup_thread = None
-        self._stop_event = threading.Event()
+    """
+    Gestor de almacenamiento para grabaciones y snapshots
+    Maneja la creación de directorios, limpieza y rotación de archivos
+    """
+    
+    def __init__(self, config_path: str = "configs/config.yaml", event_bus: Optional[EventBus] = None):
+        """Inicializa el gestor de almacenamiento"""
+        self.logger = logging.getLogger("StorageManager")
         
-        # Iniciar limpieza automática si está habilitada
-        if self.config.get('auto_cleanup', False):
-            self._start_cleanup_thread()
+        # Cargar configuración
+        self.config = load_config(config_path)
+        self.storage_config = self.config["storage"]
         
-    def _load_config(self, config_path):
-        """Cargar configuración desde archivo JSON"""
-        if not os.path.exists(config_path):
-            return {
-                "default_backend": "local",
-                "auto_cleanup": True,
-                "cleanup_interval": 3600,  # segundos (1 hora)
-                "retention_policy": {
-                    "default": 30,  # días
-                    "theft_detected": 90,  # días
-                    "perimeter_breach": 60,  # días
-                    "tailgating": 60  # días
-                },
-                "local": {
-                    "base_path": "data/videos",
-                    "structure": "{year}/{month}/{day}/{camera_id}"
-                },
-                "s3": {
-                    "bucket": "security-videos",
-                    "prefix": "videos/",
-                    "credentials_profile": "default"
-                }
+        # Directorios base
+        self.recordings_dir = self.storage_config["recordings_dir"]
+        self.snapshots_dir = self.storage_config["snapshots_dir"]
+        
+        # Estadísticas de uso
+        self.disk_usage = 0
+        self.disk_free = 0
+        self.disk_total = 0
+        
+        # Crear directorios si no existen
+        os.makedirs(self.recordings_dir, exist_ok=True)
+        os.makedirs(self.snapshots_dir, exist_ok=True)
+        
+        # Bus de eventos
+        self.event_bus = event_bus
+        
+        # Estado
+        self.is_cleaning = False
+        self.pending_recordings = {}  # camera_id: {recording_info}
+    
+    async def initialize(self):
+        """Inicializa el gestor de almacenamiento"""
+        try:
+            # Conexión al evento bus si no está ya conectado
+            if self.event_bus is None:
+                self.event_bus = EventBus(
+                    redis_host=self.config["redis"]["host"],
+                    redis_port=self.config["redis"]["port"],
+                    redis_db=self.config["redis"]["db"],
+                    redis_password=self.config["redis"]["password"],
+                )
+                await self.event_bus.connect()
+            
+            # Verificar estado de almacenamiento
+            self.update_disk_stats()
+            
+            # Realizar limpieza inicial si está habilitado
+            if self.storage_config["auto_clean"] and self.disk_usage > self.storage_config["max_disk_usage_percent"]:
+                await self.clean_old_recordings()
+            
+            # Suscribirse a eventos relevantes
+            await self.event_bus.subscribe(EventTypes.RECORDING_STARTED, self.handle_recording_started)
+            await self.event_bus.subscribe(EventTypes.RECORDING_STOPPED, self.handle_recording_stopped)
+            await self.event_bus.subscribe(EventTypes.ALERT_GENERATED, self.handle_alert_generated)
+            
+            # Iniciar listener de eventos
+            await self.event_bus.start_listener()
+            
+            self.logger.info("Gestor de almacenamiento inicializado")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error inicializando gestor de almacenamiento: {e}")
+            return False
+    
+    def update_disk_stats(self):
+        """Actualiza estadísticas de uso de disco"""
+        try:
+            # Obtener estadísticas de la unidad donde está el directorio de grabaciones
+            stat = shutil.disk_usage(self.recordings_dir)
+            
+            self.disk_total = stat.total
+            self.disk_free = stat.free
+            self.disk_usage = 100 - (stat.free / stat.total * 100)
+            
+            self.logger.debug(f"Estadísticas de disco: Uso {self.disk_usage:.1f}%, Libre {self.disk_free / (1024**3):.1f} GB")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error actualizando estadísticas de disco: {e}")
+            return False
+    
+    def get_snapshot_path(self, camera_id: int, timestamp: Optional[datetime] = None) -> str:
+        """Construye la ruta para un snapshot"""
+        if timestamp is None:
+            timestamp = datetime.now()
+        
+        year_month = timestamp.strftime("%Y_%m")
+        day = timestamp.strftime("%d")
+        filename = f"cam_{camera_id}_{timestamp.strftime('%Y%m%d_%H%M%S')}.jpg"
+        
+        # Crear estructura de directorios
+        path = os.path.join(self.snapshots_dir, f"camera_{camera_id}", year_month, day)
+        os.makedirs(path, exist_ok=True)
+        
+        return os.path.join(path, filename)
+    
+    async def save_snapshot(self, camera_id: int, frame, timestamp: Optional[datetime] = None) -> Optional[str]:
+        """Guarda un snapshot en disco"""
+        try:
+            if timestamp is None:
+                timestamp = datetime.now()
+                
+            # Construir ruta
+            snapshot_path = self.get_snapshot_path(camera_id, timestamp)
+            
+            # Guardar imagen
+            cv2.imwrite(snapshot_path, frame)
+            
+            self.logger.debug(f"Snapshot guardado: {snapshot_path}")
+            
+            # Publicar evento
+            if self.event_bus:
+                await self.event_bus.publish(EventTypes.SNAPSHOT_SAVED, {
+                    "camera_id": camera_id,
+                    "path": snapshot_path,
+                    "timestamp": timestamp.isoformat(),
+                })
+            
+            return snapshot_path
+            
+        except Exception as e:
+            self.logger.error(f"Error guardando snapshot: {e}")
+            return None
+    
+    async def close(self):
+        """Cierra el gestor de almacenamiento"""
+        try:
+            # Detener listener de eventos
+            if self.event_bus:
+                await self.event_bus.stop_listener()
+            
+            # Cerrar writers pendientes
+            for camera_id, rec_info in self.pending_recordings.items():
+                if "writer" in rec_info and rec_info["writer"]:
+                    rec_info["writer"].release()
+            
+            self.pending_recordings = {}
+            
+            self.logger.info("Gestor de almacenamiento cerrado")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"Error cerrando gestor de almacenamiento: {e}")
+            return False
+
+    async def handle_recording_started(self, channel: str, data: dict):
+        """Manejador para evento de inicio de grabación"""
+        self.logger.info(f"Grabación iniciada: {data}")
+        try:
+            camera_id = data.get('camera_id')
+            if not camera_id:
+                self.logger.error("Evento de grabación sin camera_id")
+                return
+            
+            # Agregar a grabaciones pendientes
+            self.pending_recordings[camera_id] = {
+                'start_time': datetime.now(),
+                'metadata': data
             }
-            
-        try:
-            with open(config_path, 'r') as f:
-                return json.load(f)
         except Exception as e:
-            self.logger.error(f"Error loading storage config: {e}")
-            return {}
-            
-    def _init_backends(self):
-        """Inicializar backends de almacenamiento configurados"""
-        backends = {}
+            self.logger.error(f"Error manejando evento de inicio de grabación: {e}")
         
-        if 'local' in self.config:
-            backends['local'] = LocalStorage(self.config['local'])
-            
-        if 's3' in self.config:
-            try:
-                backends['s3'] = S3Storage(self.config['s3'])
-            except ImportError:
-                self.logger.warning("S3 backend configured but boto3 not installed")
-            
-        # Aquí se pueden agregar más backends...
-        
-        return backends
-        
-    def _get_backend(self, backend_name=None):
-        """Obtener instancia de backend por nombre o el predeterminado"""
-        if backend_name and backend_name in self.storage_backends:
-            return self.storage_backends[backend_name]
-            
-        default_backend = self.config.get('default_backend', 'local')
-        if default_backend in self.storage_backends:
-            return self.storage_backends[default_backend]
-            
-        # Si no hay backend disponible, usar el primero que encontremos
-        if self.storage_backends:
-            return next(iter(self.storage_backends.values()))
-            
-        raise ValueError("No storage backends available")
-        
-    def _start_cleanup_thread(self):
-        """Iniciar hilo de limpieza automática"""
-        if self._cleanup_thread is None or not self._cleanup_thread.is_alive():
-            self._stop_event.clear()
-            self._cleanup_thread = threading.Thread(
-                target=self._cleanup_loop,
-                daemon=True
-            )
-            self._cleanup_thread.start()
-            self.logger.info("Cleanup thread started")
-            
-    def _cleanup_loop(self):
-        """Bucle de limpieza automática"""
-        interval = self.config.get('cleanup_interval', 3600)
-        
-        while not self._stop_event.is_set():
-            try:
-                self.cleanup_old_videos()
-            except Exception as e:
-                self.logger.error(f"Error in cleanup loop: {e}")
-                
-            # Esperar hasta el próximo ciclo o hasta que se solicite detener
-            self._stop_event.wait(interval)
-            
-    def store_video(self, video_data, metadata, backend=None):
-        """Almacenar video en backend especificado o predeterminado"""
+    async def handle_recording_stopped(self, channel: str, data: dict):
+        """Manejador para evento de fin de grabación"""
+        self.logger.info(f"Grabación detenida: {data}")
         try:
-            # Determinar el backend a usar
-            storage_backend = self._get_backend(backend)
+            camera_id = data.get('camera_id')
+            if not camera_id or camera_id not in self.pending_recordings:
+                self.logger.error(f"Evento de fin de grabación para cámara no iniciada: {camera_id}")
+                return
             
-            # Si video_data es un path, asumimos que es un archivo ya existente
-            if isinstance(video_data, str) and os.path.exists(video_data):
-                source_path = video_data
-            else:
-                # TODO: Implementar lógica para guardar datos de video en memoria (numpy array o bytes)
-                self.logger.error("Storing video from memory data not implemented")
-                return None
-                
-            # Almacenar en el backend
-            stored_path = storage_backend.store(source_path, metadata)
-            
-            # Indexar video si tenemos video_indexer configurado
-            if self.video_indexer and stored_path:
-                video_id = self.video_indexer._index_video(stored_path, metadata)
-                
-                # Indexar evento si hay información relevante
-                if video_id and 'event_id' in metadata and 'event_type' in metadata:
-                    self.video_indexer.index_event(
-                        {
-                            'id': metadata['event_id'],
-                            'type': metadata['event_type']
-                        },
-                        stored_path,
-                        metadata.get('start_time', 0),
-                        metadata.get('end_time', time.time())
-                    )
-                    
-                return {
-                    'path': stored_path,
-                    'video_id': video_id,
-                    'backend': storage_backend.__class__.__name__
-                }
-                
-            return {'path': stored_path, 'backend': storage_backend.__class__.__name__}
-            
+            # Procesar fin de grabación
+            del self.pending_recordings[camera_id]
         except Exception as e:
-            self.logger.error(f"Error storing video: {e}")
-            return None
-            
-    def register_video(self, video_path, metadata):
-        """Registrar un video ya existente en el sistema"""
+            self.logger.error(f"Error manejando evento de fin de grabación: {e}")
+
+    async def handle_alert_generated(self, channel: str, data: dict):
+        """Manejador para evento de alerta generada"""
+        self.logger.info(f"Alerta generada: {data}")
         try:
-            if not os.path.exists(video_path):
-                self.logger.error(f"Video file not found: {video_path}")
-                return None
-                
-            # Indexar video si tenemos video_indexer configurado
-            if self.video_indexer:
-                video_id = self.video_indexer._index_video(video_path, metadata)
-                
-                # Indexar evento si hay información relevante
-                if video_id and 'event_id' in metadata and 'event_type' in metadata:
-                    self.video_indexer.index_event(
-                        {
-                            'id': metadata['event_id'],
-                            'type': metadata['event_type']
-                        },
-                        video_path,
-                        metadata.get('start_time', 0),
-                        metadata.get('end_time', time.time())
-                    )
-                    
-                return {
-                    'path': video_path,
-                    'video_id': video_id
-                }
-                
-            return {'path': video_path}
+            # Obtener metadatos relevantes
+            camera_id = data.get('camera_id')
+            alert_id = data.get('alert_id')
             
+            if not camera_id:
+                self.logger.error("Evento de alerta sin camera_id")
+                return
+            
+            # Guardar snapshot si hay frame disponible
+            if 'frame' in data:
+                snapshot_path = await self.save_snapshot(
+                    camera_id, 
+                    data['frame'],
+                    datetime.fromisoformat(data.get('timestamp', datetime.now().isoformat()))
+                )
+                
+                # Asociar snapshot a la alerta en la base de datos
+                if snapshot_path and alert_id:
+                    with get_db() as db:
+                        alert = db.query(Alert).filter(Alert.id == alert_id).first()
+                        if alert:
+                            alert.snapshot_path = snapshot_path
+                            db.commit()
+                            
         except Exception as e:
-            self.logger.error(f"Error registering video: {e}")
-            return None
-            
-    def retrieve_video(self, video_id):
-        """Recuperar video desde su ubicación de almacenamiento"""
-        try:
-            if not self.video_indexer:
-                self.logger.error("No video indexer configured")
-                return None
-                
-            # Obtener detalles del video
-            video_details = self.video_indexer.get_video_details(video_id)
-            if not video_details:
-                return None
-                
-            # Verificar si el archivo existe localmente
-            video_path = video_details['path']
-            if os.path.exists(video_path):
-                return video_path
-                
-            # Si el archivo no existe localmente pero está en S3, descargarlo
-            if video_path.startswith('s3://') and 's3' in self.storage_backends:
-                s3_backend = self.storage_backends['s3']
-                local_path = s3_backend.retrieve(video_path)
-                
-                # Actualizar la ruta en la base de datos
-                if local_path:
-                    conn = sqlite3.connect(self.video_indexer.db_path)
-                    cursor = conn.cursor()
-                    cursor.execute('UPDATE videos SET path = ? WHERE id = ?', (local_path, video_id))
-                    conn.commit()
-                    conn.close()
-                    
-                return local_path
-                
-            self.logger.error(f"Video file not found: {video_path}")
-            return None
-            
-        except Exception as e:
-            self.logger.error(f"Error retrieving video: {e}")
-            return None
-            
-    def cleanup_old_videos(self, retention_policy=None):
-        """Limpiar videos antiguos según política de retención"""
-        try:
-            if not self.video_indexer:
-                self.logger.warning("No video indexer configured, skipping cleanup")
-                return 0
-                
-            # Usar política configurada si no se proporciona una
-            if retention_policy is None:
-                retention_policy = self.config.get('retention_policy', {})
-                
-            # Valor predeterminado: 30 días
-            default_retention = retention_policy.get('default', 30)
-            
-            # Conexión a la base de datos
-            conn = sqlite3.connect(self.video_indexer.db_path)
-            conn.row_factory = sqlite3.Row
-            cursor = conn.cursor()
-            
-            # Obtener todos los videos con eventos
-            cursor.execute('''
-            SELECT v.id, v.path, v.created_at, e.event_type 
-            FROM videos v
-            LEFT JOIN events e ON v.id = e.video_id
-            ''')
-            
-            rows = cursor.fetchall()
-            now = time.time()
-            videos_to_delete = []
-            
-            for row in rows:
-                video_id = row['id']
-                video_path = row['path']
-                created_at = row['created_at']
-                event_type = row['event_type']
-                
-                # Determinar política de retención para este tipo de evento
-                days_to_keep = retention_policy.get(event_type, default_retention) if event_type else default_retention
-                
-                # Calcular tiempo máximo de retención
-                max_age = now - (days_to_keep * 86400)  # 86400 segundos = 1 día
-                
-                # Si el video es más antiguo que el tiempo máximo, marcarlo para eliminación
-                if created_at < max_age:
-                    videos_to_delete.append((video_id, video_path))
-                    
-            # Eliminar videos marcados
-            deleted_count = 0
-            for video_id, video_path in videos_to_delete:
-                # Eliminar de la base de datos y el archivo físico
-                if self.video_indexer.delete_video(video_id, delete_file=True):
-                    deleted_count += 1
-                    
-            conn.close()
-            
-            self.logger.info(f"Cleanup completed: {deleted_count} videos deleted")
-            return deleted_count
-            
-        except Exception as e:
-            self.logger.error(f"Error in cleanup: {e}")
-            return 0
-            
-    def shutdown(self):
-        """Detener actividades en segundo plano"""
-        if self._cleanup_thread and self._cleanup_thread.is_alive():
-            self._stop_event.set()
-            self._cleanup_thread.join(timeout=5.0)
-            
-        self.logger.info("Storage manager shutdown")
+            self.logger.error(f"Error manejando evento de alerta: {e}")
 
 
 class LocalStorage:

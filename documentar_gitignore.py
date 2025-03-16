@@ -1,4 +1,6 @@
-# Archivos y directorios a ignorar por Git
+# Script para crear un archivo .gitignore apropiado
+with open('.gitignore', 'w', encoding='utf-8') as f:
+    f.write("""# Archivos y directorios a ignorar por Git
 
 # Entornos virtuales
 venv/
@@ -63,6 +65,6 @@ vigia_proyecto_completo.txt
 # Archivos de sistema
 .DS_Store
 Thumbs.db
+""")
 
-# ByteTrack (biblioteca externa)
-ByteTrack/
+print("Archivo .gitignore creado correctamente.") 

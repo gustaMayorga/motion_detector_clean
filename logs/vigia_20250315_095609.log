@@ -1,0 +1,12 @@
+2025-03-15 09:56:16,489 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 09:56:16,502 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 09:56:16,506 - Database - INFO - Base de datos inicializada
+2025-03-15 09:56:16,553 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 09:56:16,553 - VigIASystem - ERROR - Error inicializando el sistema: 'NoneType' object has no attribute 'connect'
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\src\main.py", line 70, in initialize
+    event_bus_connected = await self.event_bus.connect()
+                                ^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'connect'
+2025-03-15 09:56:16,556 - VigIASystem - ERROR - Error inicializando el sistema, no se puede iniciar
+2025-03-15 09:56:16,556 - vigIA - ERROR - Error iniciando el sistema

@@ -1,0 +1,180 @@
+# Configuración del Sistema vigIA
+# ------------------------------
+
+# Configuración general del sistema
+system:
+  name: "vigIA"
+  version: "1.0.0"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  timezone: "America/Mexico_City"
+  temp_dir: "/tmp/vigia"
+  enable_debug: false
+  
+# Configuración de base de datos
+database:
+  type: "postgresql"  # postgresql, mysql, sqlite
+  host: "localhost"
+  port: 5432
+  database: "vigia"
+  username: "${DB_USER}"  # Se carga desde variable de entorno
+  password: "${DB_PASSWORD}"  # Se carga desde variable de entorno
+  pool_size: 10
+  max_connections: 20
+  ssl_mode: "prefer"
+
+# Configuración de Redis para eventos
+redis:
+  host: "localhost"
+  port: 6379
+  db: 0
+  password: null
+  use_ssl: false
+  retry_on_timeout: true
+  
+# Configuración de MLflow para tracking de experimentos
+mlflow:
+  tracking_uri: "mlruns"
+  experiment_name: "vigia_model_training"
+  registry_uri: "sqlite:///mlflow.db"
+  
+# Configuración de almacenamiento
+storage:
+  recordings_dir: "data/recordings"
+  max_disk_usage_percent: 90
+  retention_days: 30  # Días de retención para grabaciones
+  auto_clean: true
+  snapshots_dir: "data/snapshots"
+  models_dir: "models"
+  
+# Configuración de API
+api:
+  host: "0.0.0.0"
+  port: 8800
+  debug: true
+  cors_origins: ["*"]
+  api_key_header: "X-API-Key"
+  enable_rate_limiting: true
+  rate_limit: 100  # Peticiones por minuto
+  jwt_secret: "${JWT_SECRET}"  # Se carga desde variable de entorno
+  jwt_expiration: 86400  # 24 horas en segundos
+  
+# Configuración de servidores de streaming
+streaming:
+  enable_rtsp: true
+  rtsp_port: 8554
+  enable_rtmp: false
+  rtmp_port: 1935
+  enable_hls: true
+  hls_segment_duration: 4
+  hls_dir: "data/hls"
+  
+# Configuración de detección y análisis
+detection:
+  default_model: "yolov8n.pt"
+  confidence_threshold: 0.25
+  iou_threshold: 0.45
+  max_detections: 100
+  enable_gpu: true
+  gpu_id: 0
+  batch_size: 1
+  
+# Configuración de tracking
+tracking:
+  algorithm: "bytetrack"  # bytetrack, deepsort, etc.
+  max_age: 30  # Frames
+  min_hits: 3
+  iou_threshold: 0.3
+  
+# Configuración de análisis de comportamiento
+behavior:
+  enable_zone_intrusion: true
+  enable_loitering: true
+  enable_line_crossing: true
+  enable_object_counting: true
+  loitering_time_threshold: 10  # Segundos
+  
+# Configuración de notificaciones
+notifications:
+  enable_email: false
+  smtp_server: "smtp.example.com"
+  smtp_port: 587
+  smtp_user: "${SMTP_USER}"
+  smtp_password: "${SMTP_PASSWORD}"
+  sender_email: "alerts@vigia.com"
+  enable_sms: false
+  enable_webhooks: true
+  webhook_urls: ["https://webhook.example.com/vigia"]
+  
+# Configuración de cámaras (lista de cámaras)
+cameras:
+  - id: "cam_1"
+    name: "Entrada Principal"
+    enabled: true
+    vendor: "hikvision"
+    url: "rtsp://admin:password@192.168.1.100:554/Streaming/Channels/101"
+    username: "admin"
+    password: "${CAM1_PASSWORD}"
+    fps: 15
+    resolution: "1280x720"
+    recording:
+      enabled: true
+      mode: "motion"  # continuous, motion, schedule
+      pre_record: 5  # Segundos antes del evento
+      post_record: 10  # Segundos después del evento
+    zones:
+      - name: "Entrada"
+        type: "intrusion"
+        points: [[100, 100], [300, 100], [300, 300], [100, 300]]
+        color: "red"
+      - name: "Línea de cruce"
+        type: "line"
+        points: [[400, 0], [400, 720]]
+        direction: "left-to-right"
+        color: "yellow"
+        
+  - id: "cam_2"
+    name: "Estacionamiento"
+    enabled: true
+    vendor: "dahua"
+    url: "rtsp://admin:password@192.168.1.101:554/cam/realmonitor?channel=1&subtype=0"
+    username: "admin"
+    password: "${CAM2_PASSWORD}"
+    fps: 10
+    resolution: "1920x1080"
+    recording:
+      enabled: true
+      mode: "continuous"
+      schedule:
+        - days: ["mon", "tue", "wed", "thu", "fri"]
+          periods: [["08:00", "18:00"]]
+        - days: ["sat", "sun"]
+          periods: [["10:00", "15:00"]]
+    zones:
+      - name: "Zona de vehículos"
+        type: "intrusion"
+        points: [[500, 500], [1500, 500], [1500, 1000], [500, 1000]]
+        color: "blue"
+        
+# Configuración de agentes de análisis
+agents:
+  motion_detection:
+    enabled: true
+    sensitivity: 0.3
+    min_area: 500
+    history: 120
+    
+  face_recognition:
+    enabled: false
+    model: "face_recognition_v1"
+    min_face_size: 30
+    recognition_threshold: 0.6
+    
+  license_plate:
+    enabled: false
+    region: "mx"  # Región para optimizar reconocimiento
+    confidence_threshold: 0.7
+    
+  crowd_analysis:
+    enabled: false
+    max_density_level: 3
+    count_threshold: 10 

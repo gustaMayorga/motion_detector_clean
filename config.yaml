@@ -1,0 +1,62 @@
+# Crear un archivo config.yaml más completo
+@"
+# Configuración del Sistema vigIA
+# ------------------------------
+
+# Configuración general del sistema
+system:
+  name: "vigIA"
+  version: "1.0.0"
+  log_level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  timezone: "America/Argentina/Buenos_Aires"
+  temp_dir: "/tmp/vigia"
+  enable_debug: false
+  
+# Configuración de base de datos
+database:
+  type: "postgresql"
+  host: "db"
+  port: 5432
+  database: "vigia"
+  username: "vigia"
+  password: "vigia"
+  pool_size: 10
+  max_connections: 20
+  ssl_mode: "prefer"
+  
+# Configuración de Redis para eventos
+redis:
+  host: "redis"
+  port: 6379
+  db: 0
+  password: null
+  use_ssl: false
+  retry_on_timeout: true
+  
+# Configuración de almacenamiento
+storage:
+  recordings_dir: "/app/data/recordings"
+  max_disk_usage_percent: 90
+  retention_days: 30
+  auto_clean: true
+  snapshots_dir: "/app/data/snapshots"
+  models_dir: "/app/models"
+  
+# Configuración de API
+api:
+  host: "0.0.0.0"
+  port: 8000
+  enable_cors: true
+  cors_origins: ["*"]
+  jwt_expiration: 86400  # 24 horas en segundos
+  
+# Configuración de detección y análisis
+detection:
+  default_model: "yolov8n.pt"
+  confidence_threshold: 0.25
+  iou_threshold: 0.45
+  max_detections: 100
+  enable_gpu: true
+  gpu_id: 0
+  batch_size: 1
+"@ | Out-File -FilePath "configs\config.yaml" -Encoding ascii

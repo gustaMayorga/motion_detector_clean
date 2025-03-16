@@ -1,0 +1,22 @@
+2025-03-15 10:06:21,251 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 10:06:21,264 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 10:06:21,269 - Database - INFO - Base de datos inicializada
+2025-03-15 10:06:21,309 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 10:06:23,356 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:06:23,357 - VigIASystem - INFO - Bus de eventos inicializado
+2025-03-15 10:06:23,357 - EventBus - INFO - Iniciado listener de mensajes
+2025-03-15 10:06:23,358 - VigIASystem - INFO - Inicializando gestor de almacenamiento...
+2025-03-15 10:06:23,387 - EventBus - INFO - Suscrito al canal: recording_started
+2025-03-15 10:06:23,388 - EventBus - INFO - Suscrito al canal: recording_stopped
+2025-03-15 10:06:23,388 - StorageManager - ERROR - Error inicializando gestor de almacenamiento: 'StorageManager' object has no attribute 'handle_alert_generated'
+2025-03-15 10:06:23,389 - VigIASystem - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:06:23,389 - VigIASystem - INFO - Inicializando procesadores de video...
+2025-03-15 10:06:23,390 - Database - ERROR - Error en la transacción: type object 'Camera' has no attribute 'is_active'
+2025-03-15 10:06:23,390 - VigIASystem - ERROR - Error inicializando el sistema: type object 'Camera' has no attribute 'is_active'
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\src\main.py", line 109, in initialize
+    cameras = db.query(Camera).filter(Camera.is_active == True).all()
+                                      ^^^^^^^^^^^^^^^^
+AttributeError: type object 'Camera' has no attribute 'is_active'
+2025-03-15 10:06:23,393 - VigIASystem - ERROR - Error inicializando el sistema, no se puede iniciar
+2025-03-15 10:06:23,394 - vigIA - ERROR - Error iniciando el sistema

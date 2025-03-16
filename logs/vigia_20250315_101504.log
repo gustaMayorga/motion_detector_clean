@@ -1,0 +1,30 @@
+2025-03-15 10:15:11,248 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 10:15:11,263 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 10:15:11,268 - Database - INFO - Base de datos inicializada
+2025-03-15 10:15:11,321 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 10:15:13,371 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:15:13,372 - VigIASystem - INFO - Bus de eventos inicializado
+2025-03-15 10:15:13,373 - EventBus - INFO - Iniciado listener de mensajes
+2025-03-15 10:15:13,373 - VigIASystem - INFO - Inicializando gestor de almacenamiento...
+2025-03-15 10:15:13,387 - EventBus - INFO - Suscrito al canal: recording_started
+2025-03-15 10:15:13,388 - EventBus - INFO - Suscrito al canal: recording_stopped
+2025-03-15 10:15:13,389 - EventBus - INFO - Suscrito al canal: alert_generated
+2025-03-15 10:15:13,389 - StorageManager - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:15:13,390 - VigIASystem - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:15:13,391 - VigIASystem - INFO - Inicializando procesadores de video...
+2025-03-15 10:15:13,394 - VigIASystem - INFO - Encontradas 0 cámaras
+2025-03-15 10:15:13,395 - VigIASystem - INFO - Inicializando manejador de WebSockets...
+2025-03-15 10:15:13,396 - EventBus - INFO - Suscrito al canal: alert_*
+2025-03-15 10:15:13,396 - EventBus - INFO - Suscrito al canal: camera_*
+2025-03-15 10:15:13,397 - EventBus - INFO - Suscrito al canal: detection_*
+2025-03-15 10:15:13,397 - EventBus - INFO - Suscrito al canal: system_*
+2025-03-15 10:15:13,398 - EventBus - INFO - Suscrito al canal: user_*
+2025-03-15 10:15:13,398 - WebSocketEventHandler - INFO - Iniciado manejador de eventos para WebSockets
+2025-03-15 10:15:13,398 - VigIASystem - INFO - Sistema vigIA inicializado correctamente
+2025-03-15 10:15:13,399 - VigIASystem - INFO - Iniciando procesadores de video...
+2025-03-15 10:15:15,459 - VigIASystem - INFO - Sistema vigIA en ejecución
+2025-03-15 10:15:17,675 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:15:17,676 - API - INFO - API iniciada correctamente
+2025-03-15 10:15:17,682 - EventBus - INFO - Detenido listener de mensajes
+2025-03-15 10:15:17,684 - EventBus - INFO - EventBus cerrado
+2025-03-15 10:15:17,685 - API - INFO - API cerrada correctamente

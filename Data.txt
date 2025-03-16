@@ -73,3 +73,59 @@ src/
   ├── tracking/            # Seguimiento de objetos
   ├── training/            # Entrenamiento de modelos
   └── web/                 # Servidor web
+
+
+
+  Para el Docker:
+
+docker-compose down
+docker-compose build
+docker-compose up -d
+docker-compose logs -f app
+
+
+-------------------------------------
+
+Docker INconsciente:
+
+Pasos para después del reinicio:
+Iniciar limpiamente Docker Desktop:
+Asegúrate de que inicie correctamente
+Espera unos minutos para que se estabilice
+Limpiar el entorno Docker:
+
+   # Remover contenedores, redes, imágenes y volúmenes no utilizados
+   docker system prune -a --volumes
+
+
+      cd E:\IA\motion_detector_clean
+   docker-compose build
+   docker-compose up -d
+
+
+
+   Si el problema persiste después del reinicio:
+Revisa el archivo de configuración de Docker:
+
+   # Verificar que el compose file sea válido
+   docker-compose config
+
+
+
+Prueba con un compose file simplificado:
+Crea un docker-compose.yml mínimo con solo el servicio principal
+Ve agregando servicios uno a uno
+Considera la opción de desinstalar y reinstalar Docker Desktop
+Alternativa: Ejecutar sin Docker temporalmente
+Si necesitas avanzar con el desarrollo mientras solucionas los problemas de Docker:
+
+# Crear entorno virtual
+python -m venv venv
+.\venv\Scripts\Activate.ps1
+
+# Instalar dependencias
+pip install -r requirements.txt
+
+# Ejecutar la aplicación 
+$env:PYTHONPATH = "."
+python -m src.main

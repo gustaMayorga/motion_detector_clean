@@ -1,0 +1,32 @@
+2025-03-15 10:09:23,912 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 10:09:23,929 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 10:09:24,005 - Database - INFO - Base de datos inicializada
+2025-03-15 10:09:24,046 - VigIASystem - INFO - Creando usuario administrador por defecto...
+2025-03-15 10:09:24,426 - VigIASystem - INFO - Usuario administrador creado: admin / admin123
+2025-03-15 10:09:24,426 - VigIASystem - INFO - Inicializando bus de eventos...
+2025-03-15 10:09:26,487 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:09:26,489 - VigIASystem - INFO - Bus de eventos inicializado
+2025-03-15 10:09:26,490 - EventBus - INFO - Iniciado listener de mensajes
+2025-03-15 10:09:26,491 - VigIASystem - INFO - Inicializando gestor de almacenamiento...
+2025-03-15 10:09:26,530 - EventBus - INFO - Suscrito al canal: recording_started
+2025-03-15 10:09:26,531 - EventBus - INFO - Suscrito al canal: recording_stopped
+2025-03-15 10:09:26,531 - EventBus - INFO - Suscrito al canal: alert_generated
+2025-03-15 10:09:26,532 - StorageManager - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:09:26,532 - VigIASystem - INFO - Gestor de almacenamiento inicializado
+2025-03-15 10:09:26,532 - VigIASystem - INFO - Inicializando procesadores de video...
+2025-03-15 10:09:26,535 - VigIASystem - INFO - Encontradas 0 cámaras
+2025-03-15 10:09:26,535 - VigIASystem - INFO - Inicializando manejador de WebSockets...
+2025-03-15 10:09:26,536 - EventBus - INFO - Suscrito al canal: alert_*
+2025-03-15 10:09:26,536 - EventBus - INFO - Suscrito al canal: camera_*
+2025-03-15 10:09:26,536 - EventBus - INFO - Suscrito al canal: detection_*
+2025-03-15 10:09:26,537 - EventBus - INFO - Suscrito al canal: system_*
+2025-03-15 10:09:26,537 - EventBus - INFO - Suscrito al canal: user_*
+2025-03-15 10:09:26,538 - WebSocketEventHandler - INFO - Iniciado manejador de eventos para WebSockets
+2025-03-15 10:09:26,538 - VigIASystem - INFO - Sistema vigIA inicializado correctamente
+2025-03-15 10:09:26,538 - VigIASystem - INFO - Iniciando procesadores de video...
+2025-03-15 10:09:28,586 - VigIASystem - INFO - Sistema vigIA en ejecución
+2025-03-15 10:09:30,792 - EventBus - INFO - Conexión exitosa a Redis
+2025-03-15 10:09:30,793 - API - INFO - API iniciada correctamente
+2025-03-15 10:09:30,796 - EventBus - INFO - Detenido listener de mensajes
+2025-03-15 10:09:30,797 - EventBus - INFO - EventBus cerrado
+2025-03-15 10:09:30,797 - API - INFO - API cerrada correctamente

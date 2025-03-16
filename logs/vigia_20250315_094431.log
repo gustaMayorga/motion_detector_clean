@@ -1,0 +1,14 @@
+2025-03-15 09:44:38,365 - VigIASystem - INFO - Cargando configuración...
+2025-03-15 09:44:38,382 - VigIASystem - INFO - Inicializando base de datos...
+2025-03-15 09:44:38,473 - Database - INFO - Base de datos inicializada
+2025-03-15 09:44:38,512 - VigIASystem - INFO - Creando usuario administrador por defecto...
+2025-03-15 09:44:38,658 - Database - ERROR - Error en la transacción: No module named 'werkzeug'
+2025-03-15 09:44:38,658 - VigIASystem - ERROR - Error inicializando el sistema: No module named 'werkzeug'
+Traceback (most recent call last):
+  File "E:\IA\motion_detector_clean\src\main.py", line 65, in initialize
+    await self._check_initial_data()
+  File "E:\IA\motion_detector_clean\src\main.py", line 140, in _check_initial_data
+    from werkzeug.security import generate_password_hash
+ModuleNotFoundError: No module named 'werkzeug'
+2025-03-15 09:44:38,661 - VigIASystem - ERROR - Error inicializando el sistema, no se puede iniciar
+2025-03-15 09:44:38,661 - vigIA - ERROR - Error iniciando el sistema
